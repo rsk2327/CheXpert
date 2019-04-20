@@ -33,18 +33,31 @@ def cleanLabel(x):
     
     
 
-def getLabel(x):
+def getLabel2(x,disease):
     
-    if x.Pleural_Effusion ==1:
-        return "Pleural_Effusion"
-    elif x.Edema == 1:
-        return "Edema"
-    elif x.Cardiomegaly==1:
-        return "Cardiomegaly"
-    elif x.Pneumonia == 1:
-        return "Pneumonia"
+    if x[disease] ==1:
+        return disease
     else:
-        return "0"
+        return "Rest"
+
+
+
+# def getLabel(x):
+    
+#     if x.Pleural_Effusion ==1:
+#         return "Pleural_Effusion"
+#     else:
+#         return "Rest"
+
+
+#     # elif x.Edema == 1:
+#     #     return "Edema"
+#     # elif x.Cardiomegaly==1:
+#     #     return "Cardiomegaly"
+#     # elif x.Pneumonia == 1:
+#     #     return "Pneumonia"
+#     # else:
+#     #     return "0"
     
 
 baseFolder  = "/home/santhosr/Documents/Chexpert"
@@ -98,7 +111,7 @@ df = pd.concat([trainFile,validFile])
 
 df['label'] = df.apply(lambda x : getLabel(x), axis = 1)
 
-labelMap = {"Pleural_Effusion":0, "Edema":1,"Cardiomegaly":2,"Pneumonia":3}
+labelMap = {"Pleural_Effusion":0, "Edema":1,"Cardiomegaly":2,"Pneumonia":3,"Rest":4}
 
 def getLabelDf(x):
     
@@ -140,15 +153,15 @@ class ModelTrackerCallback(TrackerCallback):
 
 
 print("Data Creation Start")
-data = ImageItemList.from_df(df=df,path=baseFolder, cols='Path').split_from_df(col='train').label_from_func(getLabelDf).transform(get_transforms(),size=256).databunch(bs=100).normalize()
+data = ImageItemList.from_df(df=df,path=baseFolder, cols='Path').split_from_df(col='train').label_from_func(getLabelDf).transform(get_transforms(),size=256).databunch(bs=50).normalize()
 print("Data Creation Complete")
 
 
-learn = create_cnn(data, tmodels.resnet34, metrics=accuracy,pretrained=True)
+learn = create_cnn(data, tmodels.resnet50, metrics=accuracy,pretrained=True)
 
 # learn.load('/home/santhosr/Documents/Birad/ProcessedData/models/model_resnet50_acc668_loss600')
 
-best_model_cb = partial(ModelTrackerCallback,id=5, modelName = "resnet34")
+best_model_cb = partial(ModelTrackerCallback,id=6, modelName = "resnet50_Edema")
 learn.callback_fns.append(best_model_cb)
 
 learn.unfreeze()
